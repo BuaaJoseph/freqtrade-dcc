@@ -1,55 +1,44 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="zh-CN" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="dark light" />
-    <title>Freqtrade Dashboard</title>
+    <meta name="color-scheme" content="light dark" />
+    <title>Freqtrade 控制台</title>
     <link rel="icon" href="/favicon.ico" />
     <link rel="stylesheet" href="/dashboard/styles.css" />
   </head>
   <body>
-    <!-- ============================= LOGIN ============================= -->
+    <!-- ============================= 登录 ============================= -->
     <div id="login" class="login-wrap">
       <form class="login-card" id="loginForm" autocomplete="on">
         <div class="brand">
           <div class="brand-logo">F</div>
           <div>
             <div class="brand-name">Freqtrade</div>
-            <div class="brand-sub">Trading Dashboard</div>
+            <div class="brand-sub">量化交易控制台</div>
           </div>
         </div>
-
         <div class="field">
-          <label for="server">Server URL</label>
-          <input id="server" name="server" type="text" inputmode="url"
-                 placeholder="http://127.0.0.1:8080" />
+          <label for="server">服务器地址</label>
+          <input id="server" name="server" type="text" inputmode="url" placeholder="http://127.0.0.1:8080" />
         </div>
         <div class="field">
-          <label for="username">Username</label>
-          <input id="username" name="username" type="text"
-                 autocomplete="username" placeholder="freqtrader" />
+          <label for="username">用户名</label>
+          <input id="username" name="username" type="text" autocomplete="username" placeholder="freqtrader" />
         </div>
         <div class="field">
-          <label for="password">Password</label>
-          <input id="password" name="password" type="password"
-                 autocomplete="current-password" placeholder="••••••••" />
+          <label for="password">密码</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" />
         </div>
-
-        <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
-          Sign in
-        </button>
+        <button type="submit" class="btn btn-primary btn-block" id="loginBtn">登录</button>
         <div id="loginError" class="login-error hidden"></div>
-        <div class="login-hint">
-          Connects to the Freqtrade REST API using your
-          <code>api_server</code> credentials.
-        </div>
+        <div class="login-hint">使用 config 中 <code>api_server</code> 配置的账号密码登录</div>
       </form>
     </div>
 
-    <!-- ============================== APP ============================== -->
+    <!-- ============================== 应用 ============================== -->
     <div id="app" class="app hidden">
-      <!-- Sidebar -->
       <aside class="sidebar" id="sidebar">
         <div class="brand">
           <div class="brand-logo">F</div>
@@ -59,85 +48,94 @@
           </div>
         </div>
 
-        <div class="nav-item active" data-view="overview">
-          <span class="ico">◎</span> Overview
-        </div>
-        <div class="nav-item" data-view="trades">
-          <span class="ico">⇅</span> Open Trades
-        </div>
-        <div class="nav-item" data-view="performance">
-          <span class="ico">▲</span> Performance
-        </div>
-        <div class="nav-item" data-view="logs">
-          <span class="ico">≡</span> Logs
-        </div>
+        <div class="nav-item active" data-view="overview"><span class="ico">◎</span> 总览</div>
+        <div class="nav-item" data-view="trade"><span class="ico">⇅</span> 交易</div>
+        <div class="nav-item" data-view="chart"><span class="ico">📈</span> 图表</div>
+        <div class="nav-item" data-view="performance"><span class="ico">▲</span> 绩效</div>
+        <div class="nav-item" data-view="history"><span class="ico">🗒</span> 交易记录</div>
+
+        <div class="nav-group-label">管理</div>
+        <div class="nav-item" data-view="pairlist"><span class="ico">☰</span> 配对列表</div>
+        <div class="nav-item" data-view="locks"><span class="ico">🔒</span> 锁定</div>
+        <div class="nav-item" data-view="logs"><span class="ico">≣</span> 日志</div>
 
         <div class="sidebar-spacer"></div>
         <div class="sidebar-foot">
           <div id="exchangeInfo">—</div>
-          <div>Freqtrade Dashboard · redesign</div>
+          <div>Freqtrade 控制台 · 重新设计版</div>
         </div>
       </aside>
 
-      <!-- Main -->
       <div class="main">
         <header class="topbar">
-          <button class="btn btn-icon menu-toggle" id="menuToggle" title="Menu">☰</button>
-          <h1 id="viewTitle">Overview</h1>
+          <button class="btn btn-icon menu-toggle" id="menuToggle" title="菜单">☰</button>
+          <h1 id="viewTitle">总览</h1>
           <div class="topbar-spacer"></div>
           <div class="topbar-controls">
             <span class="badge" id="stateBadge"><span class="dot"></span><span>—</span></span>
-            <span class="badge dry hidden" id="dryBadge">Dry-run</span>
-            <button class="btn btn-ok" id="startBtn">▶ Start</button>
-            <button class="btn btn-danger" id="stopBtn">■ Stop</button>
-            <button class="btn btn-icon" id="reloadBtn" title="Reload config">⟳</button>
-            <button class="btn btn-icon" id="themeBtn" title="Toggle theme">☾</button>
-            <button class="btn btn-icon" id="logoutBtn" title="Sign out">⏻</button>
+            <span class="badge dry hidden" id="dryBadge">模拟盘</span>
+            <button class="btn btn-up btn-sm" id="startBtn">▶ 启动</button>
+            <button class="btn btn-down btn-sm" id="stopBtn">■ 停止</button>
+            <button class="btn btn-sm" id="pauseBtn" title="暂停入场">⏸ 暂停入场</button>
+            <button class="btn btn-icon" id="reloadBtn" title="重载配置">⟳</button>
+            <button class="btn btn-icon" id="themeBtn" title="切换主题">☾</button>
+            <button class="btn btn-icon" id="logoutBtn" title="退出登录">⏻</button>
           </div>
         </header>
 
         <main class="content" id="content">
-          <!-- ============ OVERVIEW ============ -->
+          <!-- ============ 总览 ============ -->
           <section data-view-content="overview">
-            <div class="stat-grid" id="statGrid"></div>
-
-            <div class="chart-grid" style="margin-top: 22px">
-              <div class="card">
-                <div class="card-head"><h2>Daily profit</h2></div>
-                <div class="card-body">
-                  <canvas class="chart" id="dailyChart" height="240"></canvas>
+            <div class="hero">
+              <div class="hero-main">
+                <div class="hero-eyebrow">总盈亏 (含未平仓)</div>
+                <div class="hero-value" id="heroProfit">—</div>
+                <div class="hero-eyebrow" id="heroProfitPct" style="color: var(--muted)">—</div>
+                <div class="hero-meta">
+                  <div><div class="m-label">已平仓盈亏</div><div class="m-val" id="heroClosed">—</div></div>
+                  <div><div class="m-label">钱包余额</div><div class="m-val" id="heroBalance">—</div></div>
+                  <div><div class="m-label">持仓 / 上限</div><div class="m-val" id="heroOpen">—</div></div>
+                  <div><div class="m-label">胜率</div><div class="m-val" id="heroWin">—</div></div>
                 </div>
               </div>
+              <div class="hero-spark">
+                <div class="hero-eyebrow">近 30 日累计盈亏曲线</div>
+                <canvas id="sparkChart" height="150"></canvas>
+              </div>
+            </div>
+
+            <div class="stat-grid" id="statGrid"></div>
+
+            <div class="chart-grid">
               <div class="card">
-                <div class="card-head"><h2>Cumulative profit</h2></div>
-                <div class="card-body">
-                  <canvas class="chart" id="cumChart" height="240"></canvas>
-                </div>
+                <div class="card-head"><h2>每日盈亏</h2></div>
+                <div class="card-body"><canvas class="chart" id="dailyChart" height="220"></canvas></div>
+              </div>
+              <div class="card">
+                <div class="card-head"><h2>各交易对绩效</h2></div>
+                <div class="card-body"><canvas class="chart" id="pairChart" height="220"></canvas></div>
               </div>
             </div>
           </section>
 
-          <!-- ============ OPEN TRADES ============ -->
-          <section data-view-content="trades" class="hidden">
+          <!-- ============ 交易 ============ -->
+          <section data-view-content="trade" class="hidden">
             <div class="card">
               <div class="card-head">
-                <h2>Open Trades</h2>
+                <h2>当前持仓</h2>
                 <span class="chip" id="tradeCount">0</span>
                 <div class="spacer"></div>
+                <button class="btn btn-sm btn-primary" id="forceEntryBtn">＋ 强制入场</button>
+                <button class="btn btn-sm btn-down" id="exitAllBtn">全部平仓</button>
               </div>
               <div class="table-wrap">
                 <table class="data" id="tradesTable">
                   <thead>
                     <tr>
-                      <th>Pair</th>
-                      <th>Side</th>
-                      <th class="num">Stake</th>
-                      <th class="num">Open rate</th>
-                      <th class="num">Current</th>
-                      <th class="num">Profit %</th>
-                      <th class="num">Profit</th>
-                      <th>Opened</th>
-                      <th></th>
+                      <th>#</th><th>交易对</th><th>方向</th>
+                      <th class="num">投入</th><th class="num">开仓价</th><th class="num">现价</th>
+                      <th class="num">盈亏%</th><th class="num">盈亏</th>
+                      <th>持仓时长</th><th class="num">操作</th>
                     </tr>
                   </thead>
                   <tbody id="tradesBody"></tbody>
@@ -146,43 +144,158 @@
             </div>
           </section>
 
-          <!-- ============ PERFORMANCE ============ -->
-          <section data-view-content="performance" class="hidden">
+          <!-- ============ 图表 ============ -->
+          <section data-view-content="chart" class="hidden">
             <div class="card">
-              <div class="card-head"><h2>Performance by pair</h2></div>
+              <div class="card-head chart-toolbar">
+                <h2>K 线图</h2>
+                <div class="spacer"></div>
+                <select id="chartPair"></select>
+                <select id="chartTf"></select>
+                <button class="btn btn-sm btn-icon" id="chartReload" title="刷新">⟳</button>
+              </div>
+              <div class="card-body">
+                <div class="chart-readout" id="chartReadout">将鼠标移到 K 线上查看详情</div>
+                <canvas class="chart" id="candleChart" height="420"></canvas>
+                <div class="legend" id="chartLegend"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ 绩效 ============ -->
+          <section data-view-content="performance" class="hidden">
+            <div class="stat-grid" id="perfStatGrid"></div>
+            <div class="section-grid" style="grid-template-columns: 1fr 1fr">
+              <div class="card">
+                <div class="card-head">
+                  <h2>周期盈亏</h2>
+                  <div class="spacer"></div>
+                  <div class="segmented" id="periodSeg">
+                    <button data-period="daily" class="active">日</button>
+                    <button data-period="weekly">周</button>
+                    <button data-period="monthly">月</button>
+                  </div>
+                </div>
+                <div class="table-wrap">
+                  <table class="data" id="periodTable">
+                    <thead><tr><th>日期</th><th class="num">盈亏</th><th class="num">收益率</th><th class="num">笔数</th></tr></thead>
+                    <tbody id="periodBody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-head"><h2>各交易对绩效</h2></div>
+                <div class="table-wrap">
+                  <table class="data" id="perfTable">
+                    <thead><tr><th>交易对</th><th class="num">笔数</th><th class="num">盈亏%</th><th class="num">盈亏</th></tr></thead>
+                    <tbody id="perfBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="section-grid" style="grid-template-columns: 1fr 1fr">
+              <div class="card">
+                <div class="card-head"><h2>入场标签统计</h2></div>
+                <div class="table-wrap">
+                  <table class="data" id="entryTable">
+                    <thead><tr><th>入场标签</th><th class="num">笔数</th><th class="num">盈亏%</th><th class="num">盈亏</th></tr></thead>
+                    <tbody id="entryBody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-head"><h2>出场原因统计</h2></div>
+                <div class="table-wrap">
+                  <table class="data" id="exitTable">
+                    <thead><tr><th>出场原因</th><th class="num">笔数</th><th class="num">盈亏%</th><th class="num">盈亏</th></tr></thead>
+                    <tbody id="exitBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ 交易记录 ============ -->
+          <section data-view-content="history" class="hidden">
+            <div class="card">
+              <div class="card-head">
+                <h2>历史成交</h2>
+                <span class="chip" id="historyCount">共 0 笔</span>
+                <div class="spacer"></div>
+                <button class="btn btn-sm" id="histPrev">← 上一页</button>
+                <span class="chip" id="histPage">1</span>
+                <button class="btn btn-sm" id="histNext">下一页 →</button>
+              </div>
               <div class="table-wrap">
-                <table class="data" id="perfTable">
+                <table class="data" id="historyTable">
                   <thead>
                     <tr>
-                      <th>Pair</th>
-                      <th class="num">Trades</th>
-                      <th class="num">Profit %</th>
-                      <th class="num">Profit</th>
+                      <th>#</th><th>交易对</th><th>方向</th>
+                      <th class="num">开仓价</th><th class="num">平仓价</th>
+                      <th class="num">盈亏%</th><th class="num">盈亏</th>
+                      <th>出场原因</th><th>平仓时间</th>
                     </tr>
                   </thead>
-                  <tbody id="perfBody"></tbody>
+                  <tbody id="historyBody"></tbody>
                 </table>
               </div>
             </div>
           </section>
 
-          <!-- ============ LOGS ============ -->
+          <!-- ============ 配对列表 ============ -->
+          <section data-view-content="pairlist" class="hidden">
+            <div class="section-grid" style="grid-template-columns: 1fr 1fr">
+              <div class="card">
+                <div class="card-head"><h2>白名单</h2><span class="chip" id="wlCount">0</span></div>
+                <div class="card-body" id="whitelistBox"></div>
+              </div>
+              <div class="card">
+                <div class="card-head"><h2>黑名单</h2><span class="chip" id="blCount">0</span></div>
+                <div class="card-body">
+                  <div class="chart-toolbar" style="margin-bottom: 12px">
+                    <input id="blInput" type="text" placeholder="如 BTC/USDT" style="flex:1" />
+                    <button class="btn btn-sm btn-primary" id="blAddBtn">加入黑名单</button>
+                  </div>
+                  <div id="blacklistBox"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ 锁定 ============ -->
+          <section data-view-content="locks" class="hidden">
+            <div class="card">
+              <div class="card-head">
+                <h2>交易对锁定</h2>
+                <span class="chip" id="lockCount">0</span>
+                <div class="spacer"></div>
+                <button class="btn btn-sm btn-primary" id="addLockBtn">＋ 新增锁定</button>
+              </div>
+              <div class="table-wrap">
+                <table class="data" id="locksTable">
+                  <thead><tr><th>交易对</th><th>方向</th><th>解锁时间</th><th>原因</th><th class="num">操作</th></tr></thead>
+                  <tbody id="locksBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ 日志 ============ -->
           <section data-view-content="logs" class="hidden">
             <div class="card">
               <div class="card-head">
-                <h2>Recent logs</h2>
-                <div class="spacer"></div>
-                <button class="btn btn-icon" id="logRefresh" title="Refresh">⟳</button>
+                <h2>运行日志</h2><div class="spacer"></div>
+                <button class="btn btn-icon" id="logRefresh" title="刷新">⟳</button>
               </div>
-              <div class="card-body">
-                <div class="logbox" id="logBox"></div>
-              </div>
+              <div class="card-body"><div class="logbox" id="logBox"></div></div>
             </div>
           </section>
         </main>
       </div>
     </div>
 
+    <!-- 模态容器 -->
+    <div id="modalRoot"></div>
     <div class="toast-wrap" id="toasts"></div>
 
     <script src="/dashboard/app.js"></script>

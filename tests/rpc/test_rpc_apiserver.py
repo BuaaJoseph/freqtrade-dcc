@@ -201,7 +201,7 @@ def test_api_dashboard(botclient):
     # The redesigned standalone dashboard is served without UI install.
     rc = client_get(client, "/dashboard")
     assert rc.status_code == 200
-    assert "Freqtrade Dashboard" in rc.text
+    assert "Freqtrade" in rc.text and "/dashboard/app.js" in rc.text
 
     # Static assets are served with the correct media type.
     rc = client_get(client, "/dashboard/app.js")
