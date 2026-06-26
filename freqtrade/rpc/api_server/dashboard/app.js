@@ -867,7 +867,7 @@
       ctx.fillStyle = cssVar("--dim");
       ctx.font = "13px " + cssVar("--sans");
       ctx.textAlign = "center";
-      ctx.fillText("暂无 K 线数据", w / 2, h / 2);
+      ctx.fillText("该交易对 / 周期暂无分析数据（机器人需先分析过该交易对）", w / 2, h / 2);
       return;
     }
     var iO = colIdx(cols, "open"), iH = colIdx(cols, "high"), iL = colIdx(cols, "low"),
@@ -983,14 +983,15 @@
       sel.value = state.chart.pair;
       loadChart(); // 白名单就绪后再加载，避免首次 pair 为空
     });
-    var tfs = ["1m", "5m", "15m", "30m", "1h", "4h", "1d"];
-    var def = (state.config && state.config.timeframe) || "5m";
-    if (tfs.indexOf(def) < 0) tfs.unshift(def);
+    // 实盘/模拟盘下，机器人只分析策略自身的周期，请求其它周期会返回空数据，
+    // 因此这里只提供策略当前周期，避免切换后图表空白。
+    var def = (state.config && state.config.timeframe) || null;
+    var tfs = def ? [def] : ["1m", "5m", "15m", "30m", "1h", "4h", "1d"];
     var tfSel = $("#chartTf");
     tfSel.innerHTML = tfs.map(function (t) {
       return '<option value="' + t + '">' + t + "</option>";
     }).join("");
-    if (!state.chart.tf) state.chart.tf = def;
+    if (!state.chart.tf || tfs.indexOf(state.chart.tf) < 0) state.chart.tf = tfs[0];
     tfSel.value = state.chart.tf;
     api("/plot_config").then(function (p) { state.chart.plot = p; }).catch(function () {});
   }

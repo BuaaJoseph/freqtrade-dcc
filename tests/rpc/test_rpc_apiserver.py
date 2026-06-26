@@ -199,9 +199,18 @@ def test_api_dashboard(botclient):
     _ftbot, client = botclient
 
     # The redesigned standalone dashboard is served without UI install.
+    # Root now serves the redesigned dashboard by default.
+    rc = client_get(client, "/")
+    assert rc.status_code == 200
+    assert "/dashboard/app.js" in rc.text
+
     rc = client_get(client, "/dashboard")
     assert rc.status_code == 200
     assert "Freqtrade" in rc.text and "/dashboard/app.js" in rc.text
+
+    # The original FreqUI stays reachable under /frequi.
+    rc = client_get(client, "/frequi")
+    assert rc.status_code == 200
 
     # Static assets are served with the correct media type.
     rc = client_get(client, "/dashboard/app.js")

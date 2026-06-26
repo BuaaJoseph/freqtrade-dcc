@@ -30,10 +30,17 @@ async def ui_version():
     }
 
 
+@router_ui.get("/")
 @router_ui.get("/dashboard")
 @router_ui.get("/dashboard/")
 async def dashboard_index():
-    """Serve the redesigned standalone dashboard SPA."""
+    """
+    Serve the redesigned standalone dashboard SPA.
+
+    This is also the site root, so visiting the bot's address shows the
+    redesigned console by default. The original FreqUI (if installed) is
+    still reachable under /frequi.
+    """
     return FileResponse(str(Path(__file__).parent / "dashboard/index.html"))
 
 
@@ -55,6 +62,26 @@ async def dashboard_assets(asset_path: str):
     if requested.is_file():
         return FileResponse(str(requested), media_type=media_type)
     return FileResponse(str(dashboard_base / "index.html"))
+
+
+@router_ui.get("/frequi")
+@router_ui.get("/frequi/{rest_of_path:path}")
+async def frequi_index(rest_of_path: str = ""):
+    """
+    Serve the original FreqUI (if installed) under /frequi, with traversal
+    protection. Its hashed assets are served from /assets/... by the catch-all.
+    """
+    uibase = (Path(__file__).parent / "ui/installed/").resolve()
+    filename = (uibase / rest_of_path).resolve()
+    media_type: str | None = None
+    if filename.suffix == ".js":
+        media_type = "application/javascript"
+    if rest_of_path and filename.is_file() and filename.is_relative_to(uibase):
+        return FileResponse(str(filename), media_type=media_type)
+    index_file = uibase / "index.html"
+    if not index_file.is_file():
+        return FileResponse(str(uibase.parent / "fallback_file.html"))
+    return FileResponse(str(index_file))
 
 
 @router_ui.get("/{rest_of_path:path}")
