@@ -30,6 +30,33 @@ async def ui_version():
     }
 
 
+@router_ui.get("/dashboard")
+@router_ui.get("/dashboard/")
+async def dashboard_index():
+    """Serve the redesigned standalone dashboard SPA."""
+    return FileResponse(str(Path(__file__).parent / "dashboard/index.html"))
+
+
+@router_ui.get("/dashboard/{asset_path:path}")
+async def dashboard_assets(asset_path: str):
+    """
+    Serve static assets for the redesigned dashboard, with directory-traversal
+    protection. Unknown paths fall back to index.html (SPA routing).
+    """
+    dashboard_base = (Path(__file__).parent / "dashboard").resolve()
+    requested = (dashboard_base / asset_path).resolve()
+    # It's security relevant to check "relative_to" to prevent directory traversal.
+    if not requested.is_relative_to(dashboard_base):
+        raise HTTPException(status_code=404, detail="Not Found")
+    media_type: str | None = None
+    if requested.suffix == ".js":
+        # Force text/javascript for .js files - circumvent faulty system configuration
+        media_type = "application/javascript"
+    if requested.is_file():
+        return FileResponse(str(requested), media_type=media_type)
+    return FileResponse(str(dashboard_base / "index.html"))
+
+
 @router_ui.get("/{rest_of_path:path}")
 async def index_html(rest_of_path: str):
     """

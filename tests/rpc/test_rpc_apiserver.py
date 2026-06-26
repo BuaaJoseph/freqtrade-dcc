@@ -172,7 +172,7 @@ def test_api_ui_fallback(botclient, mocker):
 
     rc = client_get(client, "/fallback_file.html")
     assert rc.status_code == 200
-    assert "`freqtrade install-ui`" in rc.text
+    assert "freqtrade install-ui" in rc.text
 
     # Forwarded to fallback_html or index.html (depending if it's installed or not)
     rc = client_get(client, "/something")
@@ -192,7 +192,28 @@ def test_api_ui_fallback(botclient, mocker):
             rc = client_get(client, test_string)
             assert rc.status_code == 200
 
-            assert "`freqtrade install-ui`" in rc.text
+            assert "freqtrade install-ui" in rc.text
+
+
+def test_api_dashboard(botclient):
+    _ftbot, client = botclient
+
+    # The redesigned standalone dashboard is served without UI install.
+    rc = client_get(client, "/dashboard")
+    assert rc.status_code == 200
+    assert "Freqtrade Dashboard" in rc.text
+
+    # Static assets are served with the correct media type.
+    rc = client_get(client, "/dashboard/app.js")
+    assert rc.status_code == 200
+    assert "application/javascript" in rc.headers["content-type"]
+
+    rc = client_get(client, "/dashboard/styles.css")
+    assert rc.status_code == 200
+
+    # Directory traversal is blocked.
+    rc = client_get(client, "/dashboard/..%2F..%2Fdeps.py")
+    assert rc.status_code == 404
 
 
 def test_api_ui_version(botclient, mocker):

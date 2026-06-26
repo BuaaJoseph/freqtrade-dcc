@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Freqtrade Dashboard</title>
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/dashboard/styles.css" />
+  </head>
+  <body>
+    <!-- ============================= LOGIN ============================= -->
+    <div id="login" class="login-wrap">
+      <form class="login-card" id="loginForm" autocomplete="on">
+        <div class="brand">
+          <div class="brand-logo">F</div>
+          <div>
+            <div class="brand-name">Freqtrade</div>
+            <div class="brand-sub">Trading Dashboard</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="server">Server URL</label>
+          <input id="server" name="server" type="text" inputmode="url"
+                 placeholder="http://127.0.0.1:8080" />
+        </div>
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text"
+                 autocomplete="username" placeholder="freqtrader" />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password"
+                 autocomplete="current-password" placeholder="••••••••" />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+          Sign in
+        </button>
+        <div id="loginError" class="login-error hidden"></div>
+        <div class="login-hint">
+          Connects to the Freqtrade REST API using your
+          <code>api_server</code> credentials.
+        </div>
+      </form>
+    </div>
+
+    <!-- ============================== APP ============================== -->
+    <div id="app" class="app hidden">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <div class="brand-logo">F</div>
+          <div>
+            <div class="brand-name" id="botName">Freqtrade</div>
+            <div class="brand-sub" id="botVersion">—</div>
+          </div>
+        </div>
+
+        <div class="nav-item active" data-view="overview">
+          <span class="ico">◎</span> Overview
+        </div>
+        <div class="nav-item" data-view="trades">
+          <span class="ico">⇅</span> Open Trades
+        </div>
+        <div class="nav-item" data-view="performance">
+          <span class="ico">▲</span> Performance
+        </div>
+        <div class="nav-item" data-view="logs">
+          <span class="ico">≡</span> Logs
+        </div>
+
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-foot">
+          <div id="exchangeInfo">—</div>
+          <div>Freqtrade Dashboard · redesign</div>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <div class="main">
+        <header class="topbar">
+          <button class="btn btn-icon menu-toggle" id="menuToggle" title="Menu">☰</button>
+          <h1 id="viewTitle">Overview</h1>
+          <div class="topbar-spacer"></div>
+          <div class="topbar-controls">
+            <span class="badge" id="stateBadge"><span class="dot"></span><span>—</span></span>
+            <span class="badge dry hidden" id="dryBadge">Dry-run</span>
+            <button class="btn btn-ok" id="startBtn">▶ Start</button>
+            <button class="btn btn-danger" id="stopBtn">■ Stop</button>
+            <button class="btn btn-icon" id="reloadBtn" title="Reload config">⟳</button>
+            <button class="btn btn-icon" id="themeBtn" title="Toggle theme">☾</button>
+            <button class="btn btn-icon" id="logoutBtn" title="Sign out">⏻</button>
+          </div>
+        </header>
+
+        <main class="content" id="content">
+          <!-- ============ OVERVIEW ============ -->
+          <section data-view-content="overview">
+            <div class="stat-grid" id="statGrid"></div>
+
+            <div class="chart-grid" style="margin-top: 22px">
+              <div class="card">
+                <div class="card-head"><h2>Daily profit</h2></div>
+                <div class="card-body">
+                  <canvas class="chart" id="dailyChart" height="240"></canvas>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-head"><h2>Cumulative profit</h2></div>
+                <div class="card-body">
+                  <canvas class="chart" id="cumChart" height="240"></canvas>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ OPEN TRADES ============ -->
+          <section data-view-content="trades" class="hidden">
+            <div class="card">
+              <div class="card-head">
+                <h2>Open Trades</h2>
+                <span class="chip" id="tradeCount">0</span>
+                <div class="spacer"></div>
+              </div>
+              <div class="table-wrap">
+                <table class="data" id="tradesTable">
+                  <thead>
+                    <tr>
+                      <th>Pair</th>
+                      <th>Side</th>
+                      <th class="num">Stake</th>
+                      <th class="num">Open rate</th>
+                      <th class="num">Current</th>
+                      <th class="num">Profit %</th>
+                      <th class="num">Profit</th>
+                      <th>Opened</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="tradesBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ PERFORMANCE ============ -->
+          <section data-view-content="performance" class="hidden">
+            <div class="card">
+              <div class="card-head"><h2>Performance by pair</h2></div>
+              <div class="table-wrap">
+                <table class="data" id="perfTable">
+                  <thead>
+                    <tr>
+                      <th>Pair</th>
+                      <th class="num">Trades</th>
+                      <th class="num">Profit %</th>
+                      <th class="num">Profit</th>
+                    </tr>
+                  </thead>
+                  <tbody id="perfBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ LOGS ============ -->
+          <section data-view-content="logs" class="hidden">
+            <div class="card">
+              <div class="card-head">
+                <h2>Recent logs</h2>
+                <div class="spacer"></div>
+                <button class="btn btn-icon" id="logRefresh" title="Refresh">⟳</button>
+              </div>
+              <div class="card-body">
+                <div class="logbox" id="logBox"></div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div class="toast-wrap" id="toasts"></div>
+
+    <script src="/dashboard/app.js"></script>
+  </body>
+</html>
