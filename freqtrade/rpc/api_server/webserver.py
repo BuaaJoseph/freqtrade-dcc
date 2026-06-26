@@ -1,4 +1,5 @@
 import logging
+import secrets
 from contextlib import asynccontextmanager
 from ipaddress import ip_address
 from typing import Any
@@ -267,10 +268,22 @@ class ApiServer(RPCHandler):
         # UI Router MUST be last!
         app.include_router(router_ui, prefix="")
 
+        cors_origins = config["api_server"].get("CORS_origins", [])
+        allow_credentials = True
+        if "*" in cors_origins:
+            # A wildcard origin combined with credentials is both insecure (it would
+            # reflect any origin for authenticated requests) and rejected by browsers.
+            # Disable credentialed CORS in that case - list explicit origins to allow it.
+            logger.warning(
+                "SECURITY WARNING - `CORS_origins` contains a wildcard ('*'). "
+                "Credentialed CORS is disabled for wildcard origins. "
+                "List explicit origins in `CORS_origins` to allow credentials."
+            )
+            allow_credentials = False
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=config["api_server"].get("CORS_origins", []),
-            allow_credentials=True,
+            allow_origins=cors_origins,
+            allow_credentials=allow_credentials,
             allow_methods=["*"],
             allow_headers=["*"],
         )
@@ -281,32 +294,46 @@ class ApiServer(RPCHandler):
         """
         Start API ... should be run in thread.
         """
-        rest_ip = self._config["api_server"]["listen_ip_address"]
-        rest_port = self._config["api_server"]["listen_port"]
+        api_config = self._config["api_server"]
+        rest_ip = api_config["listen_ip_address"]
+        rest_port = api_config["listen_port"]
 
         logger.info(f"Starting HTTP Server at {rest_ip}:{rest_port}")
-        if not ip_address(rest_ip).is_loopback and not running_in_docker():
+        listening_external = not ip_address(rest_ip).is_loopback and not running_in_docker()
+        if listening_external:
             logger.warning("SECURITY WARNING - Local Rest Server listening to external connections")
             logger.warning(
                 "SECURITY WARNING - This is insecure please set to your loopback,"
                 "e.g 127.0.0.1 in config.json"
             )
 
-        if not self._config["api_server"].get("password"):
+        if not api_config.get("password"):
+            if listening_external:
+                # Refuse to expose an unauthenticated API to the network.
+                raise OperationalException(
+                    "SECURITY ERROR - The API server is configured to listen on a "
+                    "non-loopback address without a password. Set `api_server.password` "
+                    "in your config, or bind to a loopback address (e.g. 127.0.0.1) "
+                    "before starting the bot."
+                )
             logger.warning(
                 "SECURITY WARNING - No password for local REST Server defined. "
                 "Please make sure that this is intentional!"
             )
 
-        if self._config["api_server"].get("jwt_secret_key", "super-secret") in (
+        if api_config.get("jwt_secret_key", "super-secret") in (
             "super-secret",
             "somethingrandom",
             "somethingRandomSomethingRandom123",
         ):
+            # Never run with a publicly-known default JWT key - anyone could forge
+            # a valid token. Fall back to a random ephemeral key for this session.
             logger.warning(
-                "SECURITY WARNING - `jwt_secret_key` seems to be default."
-                "Others may be able to log into your bot."
+                "SECURITY WARNING - `jwt_secret_key` seems to be default. "
+                "Using a random ephemeral key for this session - set a persistent "
+                "`jwt_secret_key` in your config to keep sessions valid across restarts."
             )
+            api_config["jwt_secret_key"] = secrets.token_hex(32)
 
         logger.info("Starting Local Rest Server.")
         verbosity = self._config["api_server"].get("verbosity", "error")

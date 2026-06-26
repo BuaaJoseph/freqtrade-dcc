@@ -39,10 +39,11 @@ def download_and_install_ui(dest_folder: Path, dl_url: str, version: str):
     from zipfile import ZipFile
 
     logger.info(f"Downloading {dl_url}")
-    resp = requests.get(dl_url, timeout=req_timeout).content
+    resp = requests.get(dl_url, timeout=req_timeout)
+    resp.raise_for_status()
     dest_folder = dest_folder.resolve()
     dest_folder.mkdir(parents=True, exist_ok=True)
-    with ZipFile(BytesIO(resp)) as zf:
+    with ZipFile(BytesIO(resp.content)) as zf:
         for fn in zf.filelist:
             destfile = (dest_folder / fn.filename).resolve()
             if not destfile.is_relative_to(dest_folder):

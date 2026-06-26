@@ -471,7 +471,7 @@ def test_api_run(default_conf, mocker, caplog):
     assert log_has("Starting HTTP Server at 127.0.0.1:8080", caplog)
     assert log_has("Starting Local Rest Server.", caplog)
 
-    # Test binding to public
+    # Test binding to public without a password - refused for security.
     caplog.clear()
     server_mock.reset_mock()
     apiserver._config.update(
@@ -485,6 +485,20 @@ def test_api_run(default_conf, mocker, caplog):
             }
         }
     )
+    with pytest.raises(OperationalException, match="non-loopback address without a password"):
+        apiserver.start_api()
+    assert server_mock.call_count == 0
+    assert log_has("SECURITY WARNING - Local Rest Server listening to external connections", caplog)
+    assert log_has(
+        "SECURITY WARNING - This is insecure please set to your loopback,"
+        "e.g 127.0.0.1 in config.json",
+        caplog,
+    )
+
+    # With a password configured, external binding is allowed (with warnings).
+    caplog.clear()
+    server_mock.reset_mock()
+    apiserver._config["api_server"]["password"] = "TestPassword"
     apiserver.start_api()
 
     assert server_mock.call_count == 1
@@ -496,17 +510,9 @@ def test_api_run(default_conf, mocker, caplog):
     assert log_has("Starting HTTP Server at 0.0.0.0:8089", caplog)
     assert log_has("Starting Local Rest Server.", caplog)
     assert log_has("SECURITY WARNING - Local Rest Server listening to external connections", caplog)
-    assert log_has(
-        "SECURITY WARNING - This is insecure please set to your loopback,"
-        "e.g 127.0.0.1 in config.json",
-        caplog,
-    )
-    assert log_has(
-        "SECURITY WARNING - No password for local REST Server defined. "
-        "Please make sure that this is intentional!",
-        caplog,
-    )
+    # A default jwt_secret_key is replaced by a random ephemeral key.
     assert log_has_re("SECURITY WARNING - `jwt_secret_key` seems to be default.*", caplog)
+    assert apiserver._config["api_server"]["jwt_secret_key"] != "super-secret"
 
     server_mock.reset_mock()
     apiserver._standalone = True
