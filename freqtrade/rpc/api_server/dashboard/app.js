@@ -748,7 +748,11 @@
   function setupCanvas(cv, h) {
     var ratio = window.devicePixelRatio || 1;
     var w = cv.clientWidth || cv.parentElement.clientWidth;
-    h = h || cv.height;
+    // 逻辑高度只确定一次：来自显式参数或原始 height 属性。
+    // 不能从 cv.height 推断——它已被 ratio 放大，否则每次刷新都会翻倍撑爆页面。
+    if (h) cv._h = h;
+    if (!cv._h) cv._h = parseInt(cv.getAttribute("height"), 10) || 150;
+    h = cv._h;
     cv.width = w * ratio;
     cv.height = h * ratio;
     cv.style.height = h + "px";
